@@ -1,0 +1,23 @@
+{
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "monodat_developer",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "monodat_developer",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "development": {
+    "username": "mentor_user",
+    "password": "supersecure123",
+    "database": "mentorship_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
