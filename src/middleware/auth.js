@@ -13,7 +13,7 @@ const auth = async (req, res, next) => {
 
     const token = authHeader.split("|")[1];
 
-    // Hash the token using SHA-256
+    // Hashing of the token using SHA-256
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     console.log(hashedToken);
