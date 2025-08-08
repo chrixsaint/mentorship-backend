@@ -11,7 +11,7 @@ class FetchUserDetails {
         include: [
           {
             model: Balance,
-            as: "balances", // ✅ must match alias in Personal.associate
+            as: "balances", // ✅ must match alias in the Personal.associate
             attributes: ["balanceId", "balance1", "balance2", "userUid"],
           },
           {
