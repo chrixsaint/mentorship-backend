@@ -2,42 +2,44 @@ const express = require("express");
 const router = express.Router();
 const db = require("../models"); // adjust path if needed
 
-// Temporary route to add balances and transactions to an existing user
-router.post("/populate-user-data", async (req, res) => {
-  const { userUid, userEmail } = req.body;
+// const { randomUUID } = require("crypto"); // optional
 
+router.post("/populate-user-data", async (req, res) => {
+  const { userUid, userEmail, reset } = req.body;
   if (!userUid || !userEmail) {
     return res.status(400).json({ message: "Missing userUid or userEmail" });
   }
 
   try {
-    // ✅ Create or update balance (ensure only one per user)
     await db.Balance.upsert({
       userUid,
       userEmail,
-      balance1: 300.0,
-      balance2: 800.0,
+      balance1: 1200.0,
+      balance2: 2400.0,
     });
 
-    // ✅ Create sample transactions
-    await db.Transaction.bulkCreate([
-      {
-        userUid,
-        type: "deposit",
-        amount: 250,
-        narration: "Initial deposit",
-        transactionReference: "TXN100001",
-        createdAt: new Date(),
-      },
-      {
-        userUid,
-        type: "withdrawal",
-        amount: 100,
-        narration: "ATM withdrawal",
-        transactionReference: "TXN100002",
-        createdAt: new Date(),
-      },
-    ]);
+    // Optional: wipe prior transactions for this user on demand
+    if (reset) {
+      await db.Transaction.destroy({ where: { userUid } });
+    }
+
+    // Unique refs per run
+    const now = Date.now();
+    const refs = Array.from({ length: 5 }, (_, i) => `TXN-${userUid.slice(0,8)}-${now}-${i}`);
+    // Or: const refs = Array.from({ length: 5 }, () => `TXN-${randomUUID()}`);
+
+    await db.Transaction.bulkCreate(
+      [
+        { userUid, type: "deposit",    amount: 550,  narration: "Wallet funding", transactionReference: refs[0], createdAt: new Date() },
+        { userUid, type: "withdrawal", amount: 930,  narration: "ATM withdrawal", transactionReference: refs[1], createdAt: new Date() },
+        { userUid, type: "deposit",    amount: 210, narration: "Wallet funding", transactionReference: refs[2], createdAt: new Date() },
+        { userUid, type: "withdrawal", amount: 700,  narration: "ATM withdrawal", transactionReference: refs[3], createdAt: new Date() },
+        { userUid, type: "deposit",    amount: 190, narration: "Wallet funding", transactionReference: refs[4], createdAt: new Date() },
+      ],
+      { ignoreDuplicates: true } // prevents unique-constraint errors on reruns
+      // If you prefer updates on same reference instead:
+      // { updateOnDuplicate: ["amount", "narration", "type", "createdAt", "updatedAt"] }
+    );
 
     res.status(201).json({ message: "User balances & transactions populated" });
   } catch (error) {
